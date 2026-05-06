@@ -33,7 +33,7 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
     reg  mode_r,cin_r;
     reg [1:0]inp_valid_r;
     reg [N-1:0]OPA_1,OPB_1;
-    reg signed [N:0] sum_ext;//1 extra bit
+    reg signed [2*N-1:0] sum_ext;//1 extra bit
     integer shift_amt;
     reg flag;
 
@@ -84,7 +84,7 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
                     4'b0000: begin  //ADD
                         if (inp_valid_r==2'b11) begin
                             RES <=opa_r+opb_r;
-                            COUT<=(opa_r+opb_r)>>N;
+                            COUT<=({1'b0,opa_r}+{1'b0,opb_r})>>N;//one bit is added to catch overflow for corner case
                         end else ERR<=1;
                     end
                     
@@ -98,7 +98,7 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
                     4'b0010: begin//ADD_CIN
                         if (inp_valid_r==2'b11) begin
                             RES <=opa_r+opb_r+cin_r;
-                            COUT<=(opa_r+opb_r+cin_r)>>N;
+                            COUT<=({1'b0,opa_r}+{1'b0,opb_r}+cin_r)>>N;
                         end else ERR<=1;
                     end
 
@@ -167,12 +167,12 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
                     4'b1011:begin//signed addition
                         if (inp_valid_r==2'b11) begin
                             sum_ext = $signed({opa_r[N-1],opa_r})+$signed({opb_r[N-1],opb_r});
-                            RES<={{N{sum_ext[N-1]}}, sum_ext[N-1:0]};
+                            RES<=sum_ext;
 //                            COUT <= sum_ext[N];
                             OFLOW<=(opa_r[N-1]==opb_r[N-1]) && (sum_ext[N-1]!=opa_r[N-1]);
-                            E <= (sum_ext[N-1:0] == 0);
-                            L <= sum_ext[N-1];//msb is 1..-ve num
-                            G <= (~sum_ext[N-1]) && (sum_ext[N-1:0] != 0);//a+b is +ve
+                            E <= (sum_ext[2*N-1:0] == 0);
+                            L <= sum_ext[2*N-1];//msb is 1..-ve num
+                            G <= (~sum_ext[2*N-1]) && (sum_ext[2*N-2:0] != 0);//a+b is +ve
                         end
                         else 
                             ERR<=1;
@@ -181,12 +181,12 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
                     4'b1100:begin//signed subtraction
                         if (inp_valid_r==2'b11) begin
                             sum_ext = $signed({opa_r[N-1],opa_r})-$signed({opb_r[N-1],opb_r});
-                            RES<={{N{sum_ext[N-1]}},sum_ext[N-1:0]};
+                            RES<=sum_ext;
 //                            COUT <= sum_ext[N];//this is borrow
                             OFLOW<=(opa_r[N-1]!=opb_r[N-1]) && (sum_ext[N-1]!=opa_r[N-1]);
-                            E <= (sum_ext[N-1:0] == 0);
-                            L <= sum_ext[N-1];//msb is 1..-ve num
-                            G <= (~sum_ext[N-1]) && (sum_ext[N-1:0] != 0);//a+b is +ve
+                            E <= (sum_ext[2*N-1:0] == 0);
+                            L <= sum_ext[2*N-1];//msb is 1..-ve num
+                            G <= (~sum_ext[2*N-1]) && (sum_ext[2*N-2:0] != 0);//a+b is +ve
                         end
                         else 
                             ERR<=1;
