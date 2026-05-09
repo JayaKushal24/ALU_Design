@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module N_bit_ALU_rtl_design #(parameter N=4)(
+module alu_dut #(parameter N=4)(
     input  [N-1:0] OPA, OPB,
     input  CLK,RST,CE,MODE,CIN,
     input  [1:0] INP_VALID,
@@ -32,12 +32,12 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
     reg [3:0]cmd_r;
     reg  mode_r,cin_r;
     reg [1:0]inp_valid_r;
-    reg [N-1:0]OPA_1,OPB_1;
+    //reg [N-1:0]OPA_1,OPB_1;
     reg signed [2*N-1:0] sum_ext;//1 extra bit
-    integer shift_amt;
+//    integer shift_amt;
     reg flag;
 
-    always @(posedge CLK) begin
+    always @(posedge CLK or posedge RST) begin
         if (RST) begin
             opa_r<=0;
             opb_r<=0;
@@ -56,7 +56,7 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
         end
     end
 
-    always @(posedge CLK) begin
+    always @(posedge CLK or posedge RST) begin
         if (RST) begin
             RES<=0;
             COUT<=0;
@@ -105,7 +105,7 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
                     4'b0011: begin//SUB_CIN
                         if (inp_valid_r==2'b11) begin
                             RES<=opa_r-opb_r-cin_r;
-                            OFLOW<=(opa_r<opb_r);
+                            OFLOW<=(opa_r<(opb_r+cin_r));
                         end else ERR<=1;
                     end
 
@@ -170,9 +170,9 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
                             RES<=sum_ext;
 //                            COUT <= sum_ext[N];
                             OFLOW<=(opa_r[N-1]==opb_r[N-1]) && (sum_ext[N-1]!=opa_r[N-1]);
-                            E <= (sum_ext[2*N-1:0] == 0);
-                            L <= sum_ext[2*N-1];//msb is 1..-ve num
-                            G <= (~sum_ext[2*N-1]) && (sum_ext[2*N-2:0] != 0);//a+b is +ve
+                            E <= OPA==OPB;
+                            L <= ($signed(OPA)<$signed(OPB));
+                            G <= ($signed(OPA)>$signed(OPB));
                         end
                         else 
                             ERR<=1;
@@ -184,9 +184,9 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
                             RES<=sum_ext;
 //                            COUT <= sum_ext[N];//this is borrow
                             OFLOW<=(opa_r[N-1]!=opb_r[N-1]) && (sum_ext[N-1]!=opa_r[N-1]);
-                            E <= (sum_ext[2*N-1:0] == 0);
-                            L <= sum_ext[2*N-1];//msb is 1..-ve num
-                            G <= (~sum_ext[2*N-1]) && (sum_ext[2*N-2:0] != 0);//a+b is +ve
+                            E <= OPA==OPB;
+                            L <= ($signed(OPA)<$signed(OPB));
+                            G <= ($signed(OPA)>$signed(OPB));//a+b is +ve
                         end
                         else 
                             ERR<=1;
@@ -242,8 +242,7 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
                     4'b1100: begin //ROL
                         if (inp_valid_r==2'b11) begin
 //                            shift_amt=opb_r[$clog2(N)-1:0];
-                            if (shift_amt==0)     RES <= {{N{1'b0}},opa_r};
-                            else                  RES <= {{N{1'b0}},(opa_r<<opb_r[$clog2(N)-1:0])|(opa_r>>(N-opb_r[$clog2(N)-1:0]))};
+                            RES <= {{N{1'b0}},(opa_r<<opb_r[$clog2(N)-1:0])|(opa_r>>(N-opb_r[$clog2(N)-1:0]))};
                             // RES <= {{N{1'b0}},OPB_1};
                             if (|opb_r[N-1:$clog2(N)+1]) ERR <= 1;
                         end 
@@ -253,8 +252,7 @@ module N_bit_ALU_rtl_design #(parameter N=4)(
                     4'b1101: begin //ROR
                         if (inp_valid_r==2'b11) begin
 //                            shift_amt=opb_r[$clog2(N)-1:0];
-                            if (shift_amt==0)     RES <= {{N{1'b0}},opa_r};
-                            else                  RES <= {{N{1'b0}},(opa_r>>opb_r[$clog2(N)-1:0])|(opa_r<<(N-opb_r[$clog2(N)-1:0]))};
+                            RES <= {{N{1'b0}},(opa_r>>opb_r[$clog2(N)-1:0])|(opa_r<<(N-opb_r[$clog2(N)-1:0]))};
                             // RES <= {{N{1'b0}},OPB_1};
                             if (|opb_r[N-1:$clog2(N)+1]) ERR <= 1;
 
