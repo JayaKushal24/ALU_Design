@@ -1,22 +1,22 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
+// Company:
+// Engineer:
+//
 // Create Date: 05.05.2026 11:50:38
-// Design Name: 
+// Design Name:
 // Module Name: N_bit_ALU_rtl_design
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
+// Project Name:
+// Target Devices:
+// Tool Versions:
+// Description:
+//
+// Dependencies:
+//
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
-// 
+//
 //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -45,7 +45,7 @@ module alu_dut #(parameter N=4)(
             mode_r<=0;
             cin_r<=0;
             inp_valid_r<=0;
-        end 
+        end
         else if (CE) begin
             opa_r<=OPA;
             opb_r<=OPB;
@@ -66,7 +66,7 @@ module alu_dut #(parameter N=4)(
             L<=0;
             ERR<=0;
             flag<=1'b0;
-        end 
+        end
         else if (CE) begin
             RES<=0;
             COUT<=0;
@@ -87,7 +87,7 @@ module alu_dut #(parameter N=4)(
                             COUT<=({1'b0,opa_r}+{1'b0,opb_r})>>N;//one bit is added to catch overflow for corner case
                         end else ERR<=1;
                     end
-                    
+
                     4'b0001: begin //SUB
                         if (inp_valid_r==2'b11) begin
                             RES<=opa_r-opb_r;
@@ -134,7 +134,7 @@ module alu_dut #(parameter N=4)(
                             if (opa_r==opb_r) E<=1;
                             else if (opa_r > opb_r) G<=1;
                             else L<=1;
-                        end 
+                        end
                         else ERR<=1;
                     end
                     4'b1001:begin//increment and multiplication
@@ -166,15 +166,18 @@ module alu_dut #(parameter N=4)(
 
                     4'b1011:begin//signed addition
                         if (inp_valid_r==2'b11) begin
-                            sum_ext = $signed({opa_r[N-1],opa_r})+$signed({opb_r[N-1],opb_r});
+                            sum_ext = $signed(opa_r)+$signed(opb_r);
                             RES<=sum_ext;
 //                            COUT <= sum_ext[N];
                             OFLOW<=(opa_r[N-1]==opb_r[N-1]) && (sum_ext[N-1]!=opa_r[N-1]);
                             E <= OPA==OPB;
-                            L <= ($signed(OPA)<$signed(OPB));
-                            G <= ($signed(OPA)>$signed(OPB));
+                            L <= ($signed(opa_r)<$signed(opb_r));
+//                            L <= ($signed(OPA)<$signed(OPB));
+                            G <= ($signed(opa_r)>$signed(opb_r));
+//                            G <= ($signed(OPA)>$signed(OPB));
+
                         end
-                        else 
+                        else
                             ERR<=1;
                     end
 
@@ -185,10 +188,12 @@ module alu_dut #(parameter N=4)(
 //                            COUT <= sum_ext[N];//this is borrow
                             OFLOW<=(opa_r[N-1]!=opb_r[N-1]) && (sum_ext[N-1]!=opa_r[N-1]);
                             E <= OPA==OPB;
-                            L <= ($signed(OPA)<$signed(OPB));
-                            G <= ($signed(OPA)>$signed(OPB));//a+b is +ve
+                            L <= ($signed(opa_r)<$signed(opb_r));
+//                            L <= ($signed(OPA)<$signed(OPB));
+                            G <= ($signed(opa_r)>$signed(opb_r));
+//                            G <= ($signed(OPA)>$signed(OPB));
                         end
-                        else 
+                        else
                             ERR<=1;
 
                     end
@@ -200,43 +205,43 @@ module alu_dut #(parameter N=4)(
             else begin//logical
                 case (cmd_r)
                     //BOTH
-                    4'b0000:    if (inp_valid_r==2'b11) 
-                                    RES<={{N{1'b0}}, opa_r & opb_r}; 
+                    4'b0000:    if (inp_valid_r==2'b11)
+                                    RES<={{N{1'b0}}, opa_r & opb_r};
                                 else ERR<=1;
-                    4'b0001:    if (inp_valid_r==2'b11) 
-                                    RES<={{N{1'b0}}, ~(opa_r & opb_r)}; 
+                    4'b0001:    if (inp_valid_r==2'b11)
+                                    RES<={{N{1'b0}}, ~(opa_r & opb_r)};
                                 else ERR<=1;
-                    4'b0010:    if (inp_valid_r==2'b11) 
-                                    RES<={{N{1'b0}}, opa_r | opb_r}; 
+                    4'b0010:    if (inp_valid_r==2'b11)
+                                    RES<={{N{1'b0}}, opa_r | opb_r};
                                 else ERR<=1;
-                    4'b0011:    if (inp_valid_r==2'b11) 
-                                    RES<={{N{1'b0}}, ~(opa_r | opb_r)}; 
+                    4'b0011:    if (inp_valid_r==2'b11)
+                                    RES<={{N{1'b0}}, ~(opa_r | opb_r)};
                                 else ERR<=1;
-                    4'b0100:    if (inp_valid_r==2'b11) 
-                                    RES<={{N{1'b0}}, opa_r ^ opb_r}; 
+                    4'b0100:    if (inp_valid_r==2'b11)
+                                    RES<={{N{1'b0}}, opa_r ^ opb_r};
                                 else ERR<=1;
-                    4'b0101:    if (inp_valid_r==2'b11) 
-                                    RES<={{N{1'b0}}, ~(opa_r ^ opb_r)}; 
+                    4'b0101:    if (inp_valid_r==2'b11)
+                                    RES<={{N{1'b0}}, ~(opa_r ^ opb_r)};
                                 else ERR<=1;
                     //OPA
-                    4'b0110:    if (inp_valid_r[0]) 
-                                    RES<={{N{1'b0}}, ~opa_r}; 
+                    4'b0110:    if (inp_valid_r[0])
+                                    RES<={{N{1'b0}}, ~opa_r};
                                 else ERR<=1;
-                    4'b1000:    if (inp_valid_r[0]) 
-                                    RES<={{N{1'b0}}, opa_r>>1}; 
+                    4'b1000:    if (inp_valid_r[0])
+                                    RES<={{N{1'b0}}, opa_r>>1};
                                 else ERR<=1;
-                    4'b1001:    if (inp_valid_r[0]) 
-                                    RES<={{N{1'b0}}, opa_r << 1}; 
+                    4'b1001:    if (inp_valid_r[0])
+                                    RES<={{N{1'b0}}, opa_r << 1};
                                 else ERR<=1;
                     //OPB
-                    4'b0111:    if (inp_valid_r[1]) 
-                                    RES<={{N{1'b0}}, ~opb_r}; 
+                    4'b0111:    if (inp_valid_r[1])
+                                    RES<={{N{1'b0}}, ~opb_r};
                                 else ERR<=1;
-                    4'b1010:    if (inp_valid_r[1]) 
-                                    RES<={{N{1'b0}}, opb_r>>1}; 
+                    4'b1010:    if (inp_valid_r[1])
+                                    RES<={{N{1'b0}}, opb_r>>1};
                                 else ERR<=1;
-                    4'b1011:    if (inp_valid_r[1]) 
-                                    RES<={{N{1'b0}}, opb_r<<1}; 
+                    4'b1011:    if (inp_valid_r[1])
+                                    RES<={{N{1'b0}}, opb_r<<1};
                                 else ERR<=1;
 
                     4'b1100: begin //ROL
@@ -245,7 +250,7 @@ module alu_dut #(parameter N=4)(
                             RES <= {{N{1'b0}},(opa_r<<opb_r[$clog2(N)-1:0])|(opa_r>>(N-opb_r[$clog2(N)-1:0]))};
                             // RES <= {{N{1'b0}},OPB_1};
                             if (|opb_r[N-1:$clog2(N)+1]) ERR <= 1;
-                        end 
+                        end
                         else ERR <= 1;
                     end
 
@@ -266,3 +271,5 @@ module alu_dut #(parameter N=4)(
     end
 
 endmodule
+
+
