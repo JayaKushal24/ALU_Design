@@ -229,7 +229,7 @@ task run_driver;
         driver_send(4'd11, 8'd127, 8'd10,  0, 2'b00, 1, "SIG_ADD_both_invalid");
         driver_send(4'd12, 8'd127, -8'd2,  0, 2'b11, 1, "SIG_SUB_OFLOW");
         driver_send(4'd12, 8'd17,  8'd1,   0, 2'b00, 1, "SIG_SUB_both_invalid");
-        driver_send(4'd14, 8'd5,   8'd2,   0, 2'b00, 0, "DEFAULT_opcode");
+        driver_send(4'd14, 8'd5,   8'd2,   0, 2'b00, 1, "DEFAULT_opcode");
 
 
         $display("\n Logical Operations (MODE=0) ");
