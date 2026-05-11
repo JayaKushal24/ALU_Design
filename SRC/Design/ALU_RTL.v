@@ -170,9 +170,9 @@ module alu_dut #(parameter N=4)(
                             RES<=sum_ext;
 //                            COUT <= sum_ext[N];
                             OFLOW<=(opa_r[N-1]==opb_r[N-1]) && (sum_ext[N-1]!=opa_r[N-1]);
-                            E <= OPA==OPB;
+                            E <= opa_r==opb_r;
                             L <= ($signed(opa_r)<$signed(opb_r));
-//                            L <= ($signed(OPA)<$signed(OPB));
+                        //    L <= ($signed(OPA)<$signed(OPB));
                             G <= ($signed(opa_r)>$signed(opb_r));
 //                            G <= ($signed(OPA)>$signed(OPB));
 
@@ -187,7 +187,7 @@ module alu_dut #(parameter N=4)(
                             RES<=sum_ext;
 //                            COUT <= sum_ext[N];//this is borrow
                             OFLOW<=(opa_r[N-1]!=opb_r[N-1]) && (sum_ext[N-1]!=opa_r[N-1]);
-                            E <= OPA==OPB;
+                            E <= opa_r==opb_r;
                             L <= ($signed(opa_r)<$signed(opb_r));
 //                            L <= ($signed(OPA)<$signed(OPB));
                             G <= ($signed(opa_r)>$signed(opb_r));

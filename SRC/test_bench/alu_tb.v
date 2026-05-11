@@ -35,7 +35,7 @@ integer         q_check_cycle [0:MAX_QUEUE-1];
 
 integer q_head, q_tail;
 
-alu_dut #(.WIDTH(N)) DUT (
+alu_dut #(.N(N)) DUT (
     .CLK(CLK), .RST(RST), .CE(CE),
     .MODE(MODE), .CIN(CIN),
     .INP_VALID(INP_VALID), .CMD(CMD),
